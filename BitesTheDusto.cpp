@@ -6,25 +6,28 @@
 #include <Windows.h>
 using namespace std;
 
+//нейрон
 struct neuron
 {
-	double value;
-	double error;
+	double value; //значение нейрона
+	double error; //значение ошибки
 
-	void act()
+	void act() //функция активации нейрона
 	{
 		value = (1 / (1 + pow(2.71828, -value)));
 	}
 };
 
+//нейросеть
 class network
 {
 public:
-	int layers;
-	neuron** neurons;
-	double*** weights; //[layer number][neuron number][connection with another layer]
-	int* size;		   //nuber of neurons on each layer
+	int layers; //кол-во слоев
+	neuron** neurons; //нейроны нейросети
+	double*** weights; //[номер слоя][номер нейрона][связь со следующим слоем]
+	int* size; //кол-во нейронов на каждом слое
 
+	//производная функции активации
 	double sigm_der(double x)
 	{
 		if ((fabs(x - 1) < 1e-9) || (fabs(x) < 1e-9))
@@ -36,6 +39,7 @@ public:
 		return res;
 	}
 
+	//предположение об ответе
 	double predict(double x)
 	{
 		if (x >= 0.8)
@@ -48,6 +52,7 @@ public:
 		}
 	}
 
+	//установка входных данных
 	void set_layers(int n, int* p)
 	{
 		srand(time(0));
@@ -79,6 +84,7 @@ public:
 		}
 	}
 
+	//установка входных данных
 	void set_input(double* p)
 	{
 		for (int i = 0; i < size[0]; i++)
@@ -87,6 +93,7 @@ public:
 		}
 	}
 
+	//очистка значений нейронов в слое
 	void LayersCleaner(int LayerNumber, int start, int stop)
 	{
 		for (int i = start; i < stop; i++)
@@ -95,6 +102,7 @@ public:
 		}
 	}
 
+	//вспомогательная функция для ForwardFeed()
 	void ForwardFeeder(int LayerNumber, int start, int stop)
 	{
 		for (int j = start; j < stop; j++)
@@ -108,6 +116,7 @@ public:
 		}
 	}
 
+	//изменение значений нейронов, их активация и предположение об ответе
 	double ForwardFeed()
 	{
 		for (int i = 1; i < layers; i++)
@@ -131,6 +140,7 @@ public:
 		return prediction;
 	}
 
+	//подсчет значения ошибки
 	void ErrorCounter(int LayerNumber, int start, int stop, double prediction, double rresult, double lr)
 	{
 		if (LayerNumber == layers - 1)
@@ -163,6 +173,7 @@ public:
 		}
 	}
 
+	//обратное распространение ошибки
 	void BackPropogation(double prediction, double rresult, double lr)
 	{
 		for (int i = layers - 1; i > 0; i--)
@@ -210,6 +221,7 @@ public:
 		}
 	}
 
+	//сохранение весов
 	bool SaveWeights()
 	{
 		ofstream fout;
@@ -233,6 +245,7 @@ public:
 		return 1;
 	}
 
+	//отоборажение текущего состояния нейросети
 	void show()
 	{
 		cout << "Neural network architecture: ";
@@ -278,23 +291,24 @@ int main()
 
 	ifstream fin;
 	ofstream fout;
-	const int l = 4;
+	const int l = 4; //кол-во слоев
 	const int input_l = 35;
-	int size[l] = { input_l, 25, 15, 11 };
+	int size[l] = { input_l, 25, 15, 11 }; //заполненность слоев
 
 	network nn;
 
 	double input[input_l];
 
-	int rresult;	//right result
-	double result;	//neuron with highest value
-	double ra = 0;	//right answers
-	int maxra = 0;	//max right answers ever
+	int rresult;	//правильный ответ
+	double result;	//нейрон с наибольшим значением
+	double ra = 0;	//кол-во правлиьных ответов
+	int maxra = 0;	//максимальное кол-во правильных ответов
 	int maxraepoch = 0;
-	const int n = 11;
+	const int n = 11; //кол-во элементов для теста + 1 (числа от 0 до 9)
 
 	nn.set_layers(l, size);
 
+	//обучение нейросети
 	for (int e = 0; ra / n * 100 < 100; e++)
 	{
 		ra = 0;
@@ -348,6 +362,7 @@ int main()
 
 	fin.close();
 
+	//применение полученных знаний
 	fin.open("test2.txt");
 
 	for (int i = 0; i < input_l; i++)
@@ -358,6 +373,7 @@ int main()
 	nn.set_input(input);
 	result = nn.ForwardFeed();
 
+	//вывод ответа
 	if (result != 10)
 	{
 		cout << "\n\n" << "I'm guessing number: " << result << "\n\n";
